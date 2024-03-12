@@ -1,24 +1,22 @@
-# Use the official CentOS 7 image as the base image
-FROM ubi:latest
-LABEL maintainer="Quantum Cybertronics"
-# Update the package index and install necessary packages
-RUN yum -y update && yum -y install \
-  curl \
-  wget \
-  vim \
-  tar \
-  gzip \
-  unzip \
-  which
+# Use Red Hat Enterprise Linux latest image
+FROM registry.access.redhat.com/ubi8/ubi:latest
 
-# Set the working directory
-WORKDIR /app
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Install necessary tools and Python
+RUN yum update -y && \
+    yum install -y python3 python3-pip && \
+    yum install -y yum-utils device-mapper-persistent-data lvm2 && \
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && \
+    yum install -y docker-ce docker-ce-cli containerd.io && \
+    yum clean all
 
-# Make the app executable
-RUN chmod +x /app
+# Install Rancher (Note: Rancher is typically not installed within a container. This step is for demonstration purposes only.)
+RUN curl https://github.com/rancher/rancher/releases/download/v2.5.9/rancher-2.5.9-linux-amd64.tar.gz -L -o rancher.tar.gz && \
+    tar xzf rancher.tar.gz && \
+    mv rancher-2.5.9/* /usr/local/bin/ && \
+    rm -rf rancher-2.5.9 rancher.tar.gz
 
-# Set the default command to execute when the container starts
-CMD ["/app"]
+# Set the default command for the container
+CMD ["bash"]
